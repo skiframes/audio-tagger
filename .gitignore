@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+ENV/
+
+# Config with secrets (use config.example.json as template)
+config.json
+
+# Temp files
+*.wav
+*.tmp
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
