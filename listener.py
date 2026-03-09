@@ -254,17 +254,36 @@ class AnnotationStore:
 
 
 def record_chunk(device, rate, duration_sec, wav_path):
-    """Record a chunk of audio using arecord."""
-    cmd = [
-        "arecord", "-D", device,
-        "-f", "S16_LE",
-        "-r", str(rate),
-        "-c", "1",
-        "-d", str(duration_sec),
-        "-q",
-        wav_path,
-    ]
-    result = subprocess.run(cmd, capture_output=True, timeout=duration_sec + 5)
+    """Record a chunk of audio using arecord (Linux) or ffmpeg (Mac)."""
+    import platform
+
+    if platform.system() == "Darwin":
+        # macOS: use ffmpeg with avfoundation
+        # device format is ":N" where N is audio device index
+        cmd = [
+            "ffmpeg", "-y",
+            "-f", "avfoundation",
+            "-i", device,
+            "-t", str(duration_sec),
+            "-ar", str(rate),
+            "-ac", "1",
+            "-acodec", "pcm_s16le",
+            "-loglevel", "error",
+            wav_path,
+        ]
+    else:
+        # Linux: use arecord
+        cmd = [
+            "arecord", "-D", device,
+            "-f", "S16_LE",
+            "-r", str(rate),
+            "-c", "1",
+            "-d", str(duration_sec),
+            "-q",
+            wav_path,
+        ]
+
+    result = subprocess.run(cmd, capture_output=True, timeout=duration_sec + 10)
     return result.returncode == 0
 
 
@@ -285,11 +304,11 @@ def listen_loop(model, store, stop_event):
         try:
             ok = record_chunk(AUDIO_DEVICE, SAMPLE_RATE, chunk_dur, wav_path)
             if not ok:
-                print("  Warning: arecord failed, retrying...")
+                print("  Warning: audio recording failed, retrying...")
                 time.sleep(1)
                 continue
         except subprocess.TimeoutExpired:
-            print("  Warning: arecord timed out, retrying...")
+            print("  Warning: audio recording timed out, retrying...")
             continue
 
         # Transcribe
