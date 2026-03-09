@@ -126,13 +126,10 @@ def parse_callout(text):
     results = []
     text_lower = text.lower().strip()
 
-    # Patterns: "{name} on course", "{name} at the gate", "{name} in the gate"
+    # Patterns: "{name} on course" or "{name} at the gate"
     patterns = [
         (r'(\w+)\s+on\s+(?:the\s+)?course', 'on_course'),
-        (r'(\w+)\s+(?:at|in)\s+the\s+gate', 'at_the_gate'),
-        (r'(\w+)\s+on\s+track', 'on_course'),
-        (r'(\w+)\s+ready', 'at_the_gate'),
-        (r'(\w+)\s+go(?:ing)?', 'on_course'),
+        (r'(\w+)\s+(?:at|in)\s+(?:the\s+)?gate', 'at_the_gate'),
     ]
 
     for pattern, event_type in patterns:
