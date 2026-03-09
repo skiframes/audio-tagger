@@ -92,19 +92,27 @@ def find_latest_session():
 
 
 def match_name(text_name):
-    """Match a spoken name to known names using fuzzy matching."""
+    """Match a spoken name to known names, or accept any valid first name."""
     text_lower = text_name.lower().strip()
 
-    # Exact match
+    # Skip if empty or too short
+    if len(text_lower) < 2:
+        return None
+
+    # Exact match with known names
     for i, name in enumerate(KNOWN_NAMES):
         if text_lower == name:
             return KNOWN_NAMES_ORIGINAL[i]
 
-    # Close match (edit distance)
-    matches = get_close_matches(text_lower, KNOWN_NAMES, n=1, cutoff=0.6)
+    # Close match with known names (edit distance) - use strict cutoff
+    matches = get_close_matches(text_lower, KNOWN_NAMES, n=1, cutoff=0.8)
     if matches:
         idx = KNOWN_NAMES.index(matches[0])
         return KNOWN_NAMES_ORIGINAL[idx]
+
+    # Accept any name that looks valid (alphabetic, reasonable length)
+    if text_lower.isalpha() and 2 <= len(text_lower) <= 20:
+        return text_name.strip().title()
 
     return None
 
